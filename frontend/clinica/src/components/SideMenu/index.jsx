@@ -130,6 +130,19 @@ const SideMenu = () => {
                         </NavLink>
 
                     </li>
+                    <li>
+                        <NavLink
+                            to="/exames-list"
+                            className={({ isActive }) =>
+                                `flex gap-2 hover:text-cyan-300 ${isActive ? "text-cyan-300" : "text-white"
+                                }`
+                            }
+                        >
+                            <FaListAlt size={20} />
+                            {!isCollapsed && <span>Lista Exames</span>}
+                        </NavLink>
+
+                    </li>
                 </ul>
             </nav>
 

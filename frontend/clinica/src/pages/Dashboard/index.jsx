@@ -13,6 +13,8 @@ const Dashboard = () => {
                 <PatientsCounter />
                 <ConsultsCounter />
                 <ExamsCounter />
+                
+
             </div>
 
             {/* Lista de pacientes */}

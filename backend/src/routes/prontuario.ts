@@ -1,8 +1,7 @@
 import { Router } from "express";
-import { createHash } from "../utils/createHash";
 import { prisma } from "../prisma/prisma";
 import type { Prontuario } from "../prisma/generated/prisma/client";
-import bcrypt from "bcrypt";
+
 
 
 export const prontuarioRouter = Router();
