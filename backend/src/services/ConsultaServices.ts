@@ -17,6 +17,8 @@ export class ConsultaServices {
             motivo: dadosConsulta.motivo,
             data_consulta: dadosConsulta.data_consulta,
             observacoes: dadosConsulta.observacoes,
+            medicamento: dadosConsulta.medicamento,
+            precaucoes_dosagem: dadosConsulta.precaucoes_dosagem,
             medico_responsavel_id: dadosConsulta.medico_responsavel_id,
             paciente_id: dadosConsulta.paciente_id   
         })

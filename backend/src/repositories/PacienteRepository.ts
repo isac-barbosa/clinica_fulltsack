@@ -48,7 +48,17 @@ export class PacienteRepository {
                 email: dadosPaciente.email || "",
                 data_nascimento: dadosPaciente.data_nascimento || "",
                 sexo: dadosPaciente.sexo || "",
-                responsavel: dadosPaciente.responsavel || ""
+                responsavel: dadosPaciente.responsavel || "",
+                rg: dadosPaciente.rg || null,
+                estado_civil: dadosPaciente.estado_civil || null,
+                naturalidade: dadosPaciente.naturalidade || null,
+                contato_emergencia: dadosPaciente.contato_emergencia || null,
+                alergias: dadosPaciente.alergias || null,
+                cuidados_especiais: dadosPaciente.cuidados_especiais || null,
+                convenio: dadosPaciente.convenio || null,
+                numero_convenio: dadosPaciente.numero_convenio || null,
+                validade_convenio: dadosPaciente.validade_convenio || null,
+                endereco: dadosPaciente.endereco ?? undefined
             }
         })
     }

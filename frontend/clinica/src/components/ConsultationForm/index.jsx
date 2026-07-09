@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
-import axios from 'axios'
 import { toast } from 'react-toastify'
+import apiClient from '../../api/api'
 
 //modal
 
@@ -30,7 +30,7 @@ function ConsultationForm() {
     useEffect(() => {
         const fetchPatients = async () => {
             try {
-                const response = await axios.get("http://localhost:3000/patients")
+                const response = await apiClient.get("/pacientes")
                 setPatients(response.data)
             } catch (error) {
                 console.error("Erro ao obter dados dos pacientes", error)
@@ -50,7 +50,7 @@ function ConsultationForm() {
 
     const filteredPatients = patients.filter(
         (patient) =>
-            patient.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            patient.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
             patient.id.toString().includes(searchTerm)
     )
 
@@ -97,12 +97,36 @@ function ConsultationForm() {
         try {
             setIsSaving(true)
 
-            const dataToSave = {
-                patientId: selectedPatient.id,
-                ...formData
+            // O backend exige o id de um usuário responsável pela consulta.
+            // Buscamos o usuário logado (pelo e-mail salvo no login) para usar como responsável.
+            const emailLogado = localStorage.getItem("email")
+            const usuariosResponse = await apiClient.get("/usuarios")
+            const usuarioLogado = usuariosResponse.data.find((u) => u.email === emailLogado)
+
+            if (!usuarioLogado) {
+                toast.error("Não foi possível identificar o usuário responsável pela consulta.", {
+                    autoClose: 3000,
+                    hideProgressBar: true
+                })
+                setIsSaving(false)
+                return
             }
 
-            await axios.post("http://localhost:3000/consults", dataToSave)
+            const dataHoraConsulta = formData.time
+                ? `${formData.date}T${formData.time}:00`
+                : formData.date
+
+            const payloadConsulta = {
+                motivo: formData.reason,
+                data_consulta: dataHoraConsulta,
+                observacoes: formData.description,
+                medicamento: formData.medication,
+                precaucoes_dosagem: formData.dosagePrecautions,
+                medico_responsavel_id: usuarioLogado.id,
+                paciente_id: selectedPatient.id
+            }
+
+            await apiClient.post("/consulta", payloadConsulta)
 
             toast.success("Consulta cadastrada com sucesso!", {
                 autoClose: 2000,
@@ -155,11 +179,11 @@ function ConsultationForm() {
                                     <strong>Registro:</strong> {patient.id}
                                 </p>
                                 <p className='text-sm'>
-                                    <strong>Nome:</strong> {patient.fullName}
+                                    <strong>Nome:</strong> {patient.nome}
                                 </p>
 
                                 <p className='text-sm'>
-                                    <strong>Convênio:</strong> {patient.healthInsurance}
+                                    <strong>Convênio:</strong> {patient.convenio}
                                 </p>
 
                             </div>
@@ -185,7 +209,7 @@ function ConsultationForm() {
                         <>
                             {/* Título */}
                             <h2 className='text-lg font-bold mb-4 text-cyan-700'>
-                                Cadastrar consulta para {selectedPatient.fullName}
+                                Cadastrar consulta para {selectedPatient.nome}
                             </h2>
 
                             {/* Dados básicos */}
@@ -194,7 +218,7 @@ function ConsultationForm() {
                                     <strong>Email:</strong> {selectedPatient.email}
                                 </p>
                                 <p>
-                                    <strong>Telefone:</strong> {selectedPatient.phone}
+                                    <strong>Telefone:</strong> {selectedPatient.telefone}
                                 </p>
                             </div>
 

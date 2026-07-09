@@ -4,7 +4,11 @@ import { roleMiddleware } from "../middleware/role";
 import { Role } from "../prisma/generated/prisma/enums";
 
 export const exameRouter = Router();
-exameRouter.use(roleMiddleware([Role.ADMIN]))
+exameRouter.use('/exame', roleMiddleware([Role.ADMIN]))
+
+exameRouter.get('/exame', async (req, res) => {
+    return exameController.listarTodosExames(req, res)
+})
 
 exameRouter.get('/exame/:id', async (req, res) => {
     return exameController.buscarExameId(req, res)
@@ -22,4 +26,3 @@ exameRouter.put('/exame/:id', async (req, res) => {
 exameRouter.delete('/exame/:id', async (req, res) => {
     return exameController.deletarExame(req, res)
 })
-

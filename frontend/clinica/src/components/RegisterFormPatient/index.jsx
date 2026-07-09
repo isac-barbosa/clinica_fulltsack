@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import axios from 'axios'
 import { toast } from 'react-toastify'
+import apiClient from '../../api/api'
 
 import { IMaskInput } from 'react-imask';
 
@@ -21,7 +22,6 @@ function RegisterFormPatient() {
         healthInsurance: "",
         insuranceNumber: "",
         insuranceValidity: "",
-        photoUrl: "",
         address: {
             cep: "",
             city: "",
@@ -41,38 +41,6 @@ function RegisterFormPatient() {
     const handleInputChange = (e) => {
         const { name, value } = e.target
         setFormData((prev) => ({ ...prev, [name]: value })) //operador spread e propriedade computada
-    }
-
-    // converte a imagem escolhida em base64 e guarda no formData (preview + valor salvo)
-    const handlePhotoChange = (e) => {
-        const file = e.target.files[0]
-        if (!file) return
-
-        // valida tipo e tamanho (máx. 2MB) antes de converter
-        if (!file.type.startsWith("image/")) {
-            toast.error("Selecione um arquivo de imagem válido.", {
-                autoClose: 2000,
-                hideProgressBar: true
-            })
-            return
-        }
-        if (file.size > 2 * 1024 * 1024) {
-            toast.error("A imagem deve ter no máximo 2MB.", {
-                autoClose: 2000,
-                hideProgressBar: true
-            })
-            return
-        }
-
-        const reader = new FileReader()
-        reader.onloadend = () => {
-            setFormData((prev) => ({ ...prev, photoUrl: reader.result }))
-        }
-        reader.readAsDataURL(file)
-    }
-
-    const handleRemovePhoto = () => {
-        setFormData((prev) => ({ ...prev, photoUrl: "" }))
     }
 
     const handleAddressChange = (e) => {
@@ -142,49 +110,49 @@ function RegisterFormPatient() {
 
     const maxBirthDate = yesterday.toISOString().split("T")[0]
 
-
-
-
-    const validadeDate = () => {
-        const selectedDate = new Date(formData.birthdate)
-
-        const today = new Date()
-        today.setHours(0, 0, 0, 0)
-
-        if (selectedDate >= today) {
-            toast.error("A data de nascimento deve ser anterior à data atual.", {
-                autoClose: 2000,
-                hideProgressBar: true
-            })
-            return
-        }
-    }
-
     //submit form
 
     const handleSubmit = async (e) => {
         e.preventDefault()
 
+        // const selectedDate = new Date(formData.birthdate)
 
-        const selectedDate = new Date(formData.birthdate)
+        // const today = new Date()
+        // today.setHours(0, 0, 0, 0)
 
-        const today = new Date()
-        today.setHours(0, 0, 0, 0)
-
-        if (selectedDate >= today) {
-            toast.error("A data de nascimento deve ser anterior à data atual.", {
-                autoClose: 2000,
-                hideProgressBar: true
-            })
-            return
-        }
+        // if (selectedDate >= today) {
+        //     toast.error("A data de nascimento deve ser anterior à data atual.", {
+        //         autoClose: 2000,
+        //         hideProgressBar: true
+        //     })
+        //     return
+        // }
 
 
 
         setIsSaving(true)
 
         try {
-            await axios.post("http://localhost:3000/patients", formData)
+            const payloadPaciente = {
+                nome: formData.fullName,
+                sexo: formData.gender,
+                data_nascimento: formData.birthdate,
+                cpf: formData.cpf,
+                rg: formData.rg,
+                estado_civil: formData.maritalStatus,
+                telefone: formData.phone,
+                email: formData.email,
+                naturalidade: formData.birthplace,
+                contato_emergencia: formData.emergencyContact,
+                alergias: formData.allergies,
+                cuidados_especiais: formData.specialCare,
+                convenio: formData.healthInsurance,
+                numero_convenio: formData.insuranceNumber,
+                validade_convenio: formData.insuranceValidity || null,
+                endereco: formData.address
+            }
+
+            await apiClient.post("/pacientes", payloadPaciente)
 
             toast.success("Paciente cadastrado com sucesso!", {
                 autoClose: 2000,
@@ -207,7 +175,6 @@ function RegisterFormPatient() {
                 healthInsurance: "",
                 insuranceNumber: "",
                 insuranceValidity: "",
-                photoUrl: "",
                 address: {
                     cep: "",
                     city: "",
@@ -236,42 +203,6 @@ function RegisterFormPatient() {
             className='space-y-6 text-gray-800'
             autoComplete='off'
         >
-
-            {/* Foto / Avatar do paciente */}
-            <fieldset className='flex items-center gap-4'>
-                {formData.photoUrl ? (
-                    <img
-                        src={formData.photoUrl}
-                        alt='Pré-visualização da foto do paciente'
-                        className='w-20 h-20 rounded-full object-cover border-2 border-cyan-600'
-                    />
-                ) : (
-                    <div className='w-20 h-20 rounded-full bg-cyan-100 text-cyan-700 flex items-center justify-center text-2xl font-semibold border-2 border-cyan-200'>
-                        {formData.fullName ? formData.fullName.charAt(0).toUpperCase() : '?'}
-                    </div>
-                )}
-
-                <div>
-                    <label htmlFor='photo' className='block text-sm font-medium mb-1'>Foto do Paciente</label>
-                    <input
-                        type='file'
-                        name='photo'
-                        id='photo'
-                        accept='image/*'
-                        onChange={handlePhotoChange}
-                        className='block text-sm text-gray-600 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:bg-cyan-50 file:text-cyan-700 hover:file:bg-cyan-100 cursor-pointer'
-                    />
-                    {formData.photoUrl && (
-                        <button
-                            type='button'
-                            onClick={handleRemovePhoto}
-                            className='text-xs text-red-600 hover:underline mt-1'
-                        >
-                            Remover foto
-                        </button>
-                    )}
-                </div>
-            </fieldset>
 
             <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
                 {/* Nome completo */}
@@ -320,7 +251,6 @@ function RegisterFormPatient() {
                         id='birthdate'
                         value={formData.birthdate}
                         onChange={handleInputChange}
-                        onBlur={validadeDate}
                         max={maxBirthDate}
                         required
                         className='w-full border p-2 rounded-lg focus:ring-2 focus:ring-cyan-600 outline-none'
@@ -618,6 +548,7 @@ function RegisterFormPatient() {
                         id='state'
                         value={formData.address.state}
                         onChange={handleAddressChange}
+                        disabled="true"
                         className='w-full border p-2 rounded-lg focus:ring-2 focus:ring-cyan-600 outline-none'
                     />
                 </fieldset>

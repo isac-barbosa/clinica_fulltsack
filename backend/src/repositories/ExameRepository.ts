@@ -24,14 +24,17 @@ export class ExameRepository {
         }
     }
 
-    async criarExame(dadosExame: Partial<Exame>) {
+    async criarExame(dadosExame: Partial<Exame> & { pacienteId?: number | null }) {
         return await this.prisma.exame.create({
             data: {
             tipo_exame: dadosExame.tipo_exame,
-            valor: dadosExame.valor,
+            valor: dadosExame.valor ?? undefined,
             descricao: dadosExame.descricao,
             resultado: dadosExame.resultado,
-            data_exame: new Date(dadosExame.data_exame || "")
+            laboratorio: dadosExame.laboratorio || null,
+            documento_url: dadosExame.documento_url || null,
+            data_exame: new Date(dadosExame.data_exame || ""),
+            pacienteId: dadosExame.pacienteId ?? undefined
         }
         })
     }

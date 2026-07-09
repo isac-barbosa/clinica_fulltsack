@@ -10,13 +10,16 @@ export class ExameServices {
         return exames
     }
     
-    async criarExame(dadosExame: Exame) {
+    async criarExame(dadosExame: Exame & { pacienteId?: number | null }) {
         const exameCriado = await this.repository.criarExame({
             tipo_exame: dadosExame.tipo_exame,
             valor: dadosExame.valor,
             descricao: dadosExame.descricao,
             resultado: dadosExame.resultado,
-            data_exame: new Date(dadosExame.data_exame || "")
+            laboratorio: dadosExame.laboratorio,
+            documento_url: dadosExame.documento_url,
+            data_exame: new Date(dadosExame.data_exame || ""),
+            pacienteId: dadosExame.pacienteId
         })
         return exameCriado
     }

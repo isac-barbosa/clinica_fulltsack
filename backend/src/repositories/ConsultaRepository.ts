@@ -44,6 +44,8 @@ export class ConsultaRepository {
                 motivo: dadosConsulta.motivo || "",
                 data_consulta: dadosConsulta.data_consulta || "",
                 observacoes: dadosConsulta.observacoes || "",
+                medicamento: dadosConsulta.medicamento || null,
+                precaucoes_dosagem: dadosConsulta.precaucoes_dosagem || null,
                 medico_responsavel_id: dadosConsulta.medico_responsavel_id || "",
                 paciente_id: dadosConsulta.paciente_id || ""
             }

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
-import axios from 'axios'
 import { toast } from 'react-toastify'
+import apiClient from '../../api/api'
 
 //modal
 import Modal from '../Modal'
@@ -18,6 +18,7 @@ const RegisterExams = () => {
         date: "",
         time: "",
         type: "",
+        laboratory: "",
         documentUrl: "",
         results: ""
     })
@@ -27,7 +28,7 @@ const RegisterExams = () => {
     useEffect(() => {
         const fetchPatients = async () => {
             try {
-                const response = await axios.get("http://localhost:3000/patients")
+                const response = await apiClient.get("/pacientes")
                 setPatients(response.data)
             } catch (error) {
                 console.error("Erro ao obter dados dos pacientes", error)
@@ -47,7 +48,7 @@ const RegisterExams = () => {
 
     const filteredPatients = patients.filter(
         (patient) =>
-            patient.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            patient.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
             patient.id.toString().includes(searchTerm)
     )
 
@@ -80,6 +81,7 @@ const RegisterExams = () => {
             date: "",
             time: "",
             type: "",
+            laboratory: "",
             documentUrl: "",
             results: ""
         })
@@ -94,12 +96,22 @@ const RegisterExams = () => {
         try {
             setIsSaving(true)
 
-            const dataToSave = {
-                patientId: selectedPatient.id,
-                ...formData
+            const combinarDataHora = (data, hora) => {
+                if (!data) return null
+                return hora ? `${data}T${hora}:00` : data
             }
 
-            await axios.post("http://localhost:3000/exams", dataToSave)
+            const payloadExame = {
+                tipo_exame: formData.type,
+                descricao: formData.type,
+                resultado: formData.results || "",
+                laboratorio: formData.laboratory,
+                documento_url: typeof formData.documentUrl === "string" ? formData.documentUrl : (formData.documentUrl?.name || null),
+                data_exame: combinarDataHora(formData.date, formData.time),
+                pacienteId: selectedPatient.id
+            }
+
+            await apiClient.post("/exame", payloadExame)
 
             toast.success("Exame cadastrado com sucesso!", {
                 autoClose: 2000,
@@ -184,11 +196,11 @@ const RegisterExams = () => {
                                     <strong>Registro:</strong> {patient.id}
                                 </p>
                                 <p className='text-sm'>
-                                    <strong>Nome:</strong> {patient.fullName}
+                                    <strong>Nome:</strong> {patient.nome}
                                 </p>
 
                                 <p className='text-sm'>
-                                    <strong>Convênio:</strong> {patient.healthInsurance}
+                                    <strong>Convênio:</strong> {patient.convenio}
                                 </p>
 
                             </div>
@@ -214,7 +226,7 @@ const RegisterExams = () => {
                         <>
                             {/* Título */}
                             <h2 className='text-lg font-bold mb-4 text-cyan-700'>
-                                Cadastrar exame para {selectedPatient.fullName}
+                                Cadastrar exame para {selectedPatient.nome}
                             </h2>
 
                             {/* Dados básicos */}
@@ -223,7 +235,7 @@ const RegisterExams = () => {
                                     <strong>Email:</strong> {selectedPatient.email}
                                 </p>
                                 <p>
-                                    <strong>Telefone:</strong> {selectedPatient.phone}
+                                    <strong>Telefone:</strong> {selectedPatient.telefone}
                                 </p>
                             </div>
 

@@ -1,16 +1,12 @@
 import { useState, useEffect } from "react"
-import axios from "axios"
 import { FaUserAlt } from 'react-icons/fa'
 import { Link } from "react-router"
-import Pagination from "../Pagination"
-
-const ITEMS_PER_PAGE = 5
+import apiClient from "../../api/api"
 
 const PatientsList = () => {
     const [patients, setPatients] = useState([])
     const [searchTerm, setSearchTerm] = useState("")
     const [ages, setAges] = useState({})
-    const [currentPage, setCurrentPage] = useState(1)
 
     const calculateAge = (birthdate) => {
         if (!birthdate) return "-"
@@ -27,7 +23,7 @@ const PatientsList = () => {
     useEffect(() => {
         const fetchPatients = async () => {
             try {
-                const response = await axios.get("http://localhost:3000/patients")
+                const response = await apiClient.get("/pacientes")
                 if (!response) return
 
                 const patientsData = response.data
@@ -36,7 +32,7 @@ const PatientsList = () => {
 
                 const calculatedAges = {}
                 patientsData.forEach((patient) => {
-                    calculatedAges[patient.id] = calculateAge(patient.birthdate)
+                    calculatedAges[patient.id] = calculateAge(patient.data_nascimento)
                 })
                 setAges(calculatedAges)
                 setPatients(patientsData)
@@ -50,20 +46,13 @@ const PatientsList = () => {
 
     const handleSearchChange = (event) => {
         setSearchTerm(event.target.value)
-        setCurrentPage(1) // sempre volta para a primeira página ao buscar
     }
 
     const filteredPatients = patients.filter((patient) =>
-        [patient.fullName, patient.email, patient.phone]
+        [patient.nome, patient.email, patient.telefone]
             .join(" ")
             .toLowerCase()
             .includes(searchTerm.toLowerCase())
-    )
-
-    // calcula apenas os pacientes da página atual
-    const paginatedPatients = filteredPatients.slice(
-        (currentPage - 1) * ITEMS_PER_PAGE,
-        currentPage * ITEMS_PER_PAGE
     )
 
 
@@ -93,57 +82,40 @@ const PatientsList = () => {
 
             {
                 filteredPatients.length > 0 ? (
-                    <>
-                        <ul className="divide-y divide-gray-200">
-                            {
-                                paginatedPatients.map((patient) => (
-                                    <li
-                                        key={patient.id}
-                                        className="flex flex-col sm:flex-row sm:items-center justify-between py-4"
-                                    >
-                                        <div className="flex items-center gap-4">
-                                            {patient.photoUrl ? (
-                                                <img
-                                                    src={patient.photoUrl}
-                                                    alt={`Foto de ${patient.fullName}`}
-                                                    className="w-12 h-12 rounded-full object-cover border border-cyan-100"
-                                                />
-                                            ) : (
-                                                <div className="bg-cyan-100 text-cyan-700 p-3 rounded-full">
-                                                    <FaUserAlt size={20} />
-                                                </div>
-                                            )}
-                                            <div>
-                                                <p className="font-semibold text-gray-800">{patient.fullName}</p>
-                                                <p className="text-sm text-gray-600">{patient.email}</p>
-                                                <p className="text-sm text-gray-600">{patient.phone}</p>
-                                            </div>
+                    <ul className="divide-y divide-gray-200">
+                        {
+                            filteredPatients.map((patient) => (
+                                <li
+                                    key={patient.id}
+                                    className="flex flex-col sm:flex-row sm:items-center justify-between py-4"
+                                >
+                                    <div className="flex items-center gap-4">
+                                        <div className="bg-cyan-100 text-cyan-700 p-3 rounded-full">
+                                            <FaUserAlt size={20} />
                                         </div>
-
-                                        <div className="text-sm text-gray-600 mt-2 sm:mt-0 text-right">
-                                            <p><strong>Idade:</strong>{ages[patient.id] || "-"} anos</p>
-                                            <p><strong>Plano:</strong>{patient.healthInsurance || "-"}</p>
-                                            <Link
-                                                to={`/paciente/${patient.id}`}
-                                                className="text-cyan-700 font-semibold hover:underline"
-                                            >
-                                                Ver detalhes
-                                            </Link>
+                                        <div>
+                                            <p className="font-semibold text-gray-800">{patient.nome}</p>
+                                            <p className="text-sm text-gray-600">{patient.email}</p>
+                                            <p className="text-sm text-gray-600">{patient.telefone}</p>
                                         </div>
+                                    </div>
 
-                                    </li>
-                                ))
+                                    <div className="text-sm text-gray-600 mt-2 sm:mt-0 text-right">
+                                        <p><strong>Idade:</strong>{ages[patient.id] || "-"} anos</p>
+                                        <p><strong>Plano:</strong>{patient.convenio || "-"}</p>
+                                        <Link
+                                            to={`/paciente/${patient.id}`}
+                                            className="text-cyan-700 font-semibold hover:underline"
+                                        >
+                                            Ver detalhes
+                                        </Link>
+                                    </div>
 
-                            }
-                        </ul>
+                                </li>
+                            ))
 
-                        <Pagination
-                            currentPage={currentPage}
-                            totalItems={filteredPatients.length}
-                            itemsPerPage={ITEMS_PER_PAGE}
-                            onPageChange={setCurrentPage}
-                        />
-                    </>
+                        }
+                    </ul>
                 ) : (
                     <p className="text-gray-500 text-center py-6">
                         Nenhum paciente encontrado

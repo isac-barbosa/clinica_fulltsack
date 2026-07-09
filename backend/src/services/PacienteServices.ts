@@ -22,7 +22,17 @@ export class PacienteServices {
             email: dadosPaciente.email,
             data_nascimento: dadosPaciente.data_nascimento,
             sexo: dadosPaciente.sexo,
-            responsavel: dadosPaciente.responsavel
+            responsavel: dadosPaciente.responsavel,
+            rg: dadosPaciente.rg,
+            estado_civil: dadosPaciente.estado_civil,
+            naturalidade: dadosPaciente.naturalidade,
+            contato_emergencia: dadosPaciente.contato_emergencia,
+            alergias: dadosPaciente.alergias,
+            cuidados_especiais: dadosPaciente.cuidados_especiais,
+            convenio: dadosPaciente.convenio,
+            numero_convenio: dadosPaciente.numero_convenio,
+            validade_convenio: dadosPaciente.validade_convenio,
+            endereco: dadosPaciente.endereco as any
         })
         return pacienteCriado
     }

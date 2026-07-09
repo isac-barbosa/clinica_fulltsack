@@ -9,7 +9,7 @@ const ExamsCounter = () => {
     useEffect(() => {
         const fetchExams = async () => {
             try {
-                const response = await apiClient.get('/exames?pagina=1&limite=10')
+                const response = await apiClient.get('/exame?pagina=1&limite=10')
                 setExamCounter(response.data.total)
             } catch (error) {
                 console.error("Erro ao obter dados do pacientes", error)

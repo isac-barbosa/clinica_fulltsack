@@ -97,4 +97,4 @@ const Pagination = ({ currentPage, totalItems, itemsPerPage, onPageChange }) => 
     )
 }
 
-export default Pagination 
+export default Pagination

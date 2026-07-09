@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
-import axios from 'axios'
 import { FaCalendarCheck } from 'react-icons/fa'
+import apiClient from '../../../api/api'
 
 const ConsultsCounter = () => {
     const [consultCounter, setConsultCounter] = useState(0)
@@ -8,7 +8,7 @@ const ConsultsCounter = () => {
     useEffect(() => {
         const fetchConsults = async () => {
             try {
-                const response = await axios.get('http://localhost:3000/consults')
+                const response = await apiClient.get('/consulta')
                 setConsultCounter(response.data.length)
             } catch (error) {
                 console.error("Erro ao obter dados do pacientes", error)

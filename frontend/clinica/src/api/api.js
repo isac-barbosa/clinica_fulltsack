@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const apiClient = axios.create({
-    baseURL: 'http://44.204.115.34:3000',
+    baseURL: 'http://127.0.0.1:3000',
 });
 
 
@@ -23,3 +23,4 @@ apiClient.interceptors.request.use(
 );
 
 export default apiClient;
+ 
