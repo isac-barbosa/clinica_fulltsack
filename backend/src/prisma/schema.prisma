@@ -31,14 +31,16 @@ model Usuario {
 }
 
 model Exame {
-  id         Int       @id @default(autoincrement())
-  tipo_exame String
-  valor      Decimal
-  descricao  String
-  resultado  String
-  data_exame DateTime
-  paciente   Paciente? @relation(fields: [pacienteId], references: [id])
-  pacienteId Int?
+  id            Int       @id @default(autoincrement())
+  tipo_exame    String
+  valor         Decimal?
+  descricao     String
+  resultado     String
+  laboratorio   String?
+  documento_url String?
+  data_exame    DateTime
+  paciente      Paciente? @relation(fields: [pacienteId], references: [id])
+  pacienteId    Int?
 
   @@map("exame")
 }
@@ -62,17 +64,27 @@ model Token {
 }
 
 model Paciente {
-  id              Int          @id @default(autoincrement())
-  nome            String
-  cpf             String
-  telefone        String
-  email           String
-  data_nascimento DateTime
-  sexo            String
-  responsavel     String?
-  Prontuario      Prontuario[]
-  Consulta        Consulta[]
-  Exame           Exame[]
+  id                 Int          @id @default(autoincrement())
+  nome               String
+  cpf                String
+  telefone           String
+  email              String
+  data_nascimento    DateTime
+  sexo               String
+  responsavel        String?
+  rg                 String?
+  estado_civil       String?
+  naturalidade       String?
+  contato_emergencia String?
+  alergias           String?
+  cuidados_especiais String?
+  convenio           String?
+  numero_convenio    String?
+  validade_convenio  DateTime?
+  endereco           Json?
+  Prontuario         Prontuario[]
+  Consulta           Consulta[]
+  Exame              Exame[]
 
   @@map("paciente")
 }
@@ -90,13 +102,15 @@ model Prontuario {
 }
 
 model Consulta {
-  id                    Int      @id @default(autoincrement())
-  motivo                String
-  data_consulta         DateTime
-  observacoes           String
-  medico_responsavel_id Int
-  paciente_id           Int
-  paciente              Paciente @relation(fields: [paciente_id], references: [id])
+  id                     Int      @id @default(autoincrement())
+  motivo                 String
+  data_consulta          DateTime
+  observacoes            String
+  medicamento            String?
+  precaucoes_dosagem     String?
+  medico_responsavel_id  Int
+  paciente_id            Int
+  paciente               Paciente @relation(fields: [paciente_id], references: [id])
 
   @@map("consulta")
 }

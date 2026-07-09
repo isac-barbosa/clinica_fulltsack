@@ -92,6 +92,8 @@ export const ExameScalarFieldEnum = {
   valor: 'valor',
   descricao: 'descricao',
   resultado: 'resultado',
+  laboratorio: 'laboratorio',
+  documento_url: 'documento_url',
   data_exame: 'data_exame',
   pacienteId: 'pacienteId'
 } as const
@@ -119,7 +121,17 @@ export const PacienteScalarFieldEnum = {
   email: 'email',
   data_nascimento: 'data_nascimento',
   sexo: 'sexo',
-  responsavel: 'responsavel'
+  responsavel: 'responsavel',
+  rg: 'rg',
+  estado_civil: 'estado_civil',
+  naturalidade: 'naturalidade',
+  contato_emergencia: 'contato_emergencia',
+  alergias: 'alergias',
+  cuidados_especiais: 'cuidados_especiais',
+  convenio: 'convenio',
+  numero_convenio: 'numero_convenio',
+  validade_convenio: 'validade_convenio',
+  endereco: 'endereco'
 } as const
 
 export type PacienteScalarFieldEnum = (typeof PacienteScalarFieldEnum)[keyof typeof PacienteScalarFieldEnum]
@@ -141,6 +153,8 @@ export const ConsultaScalarFieldEnum = {
   motivo: 'motivo',
   data_consulta: 'data_consulta',
   observacoes: 'observacoes',
+  medicamento: 'medicamento',
+  precaucoes_dosagem: 'precaucoes_dosagem',
   medico_responsavel_id: 'medico_responsavel_id',
   paciente_id: 'paciente_id'
 } as const
@@ -154,6 +168,14 @@ export const SortOrder = {
 } as const
 
 export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
+
+
+export const NullableJsonNullValueInput = {
+  DbNull: DbNull,
+  JsonNull: JsonNull
+} as const
+
+export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
 
 
 export const QueryMode = {
@@ -170,4 +192,13 @@ export const NullsOrder = {
 } as const
 
 export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
+
+
+export const JsonNullValueFilter = {
+  DbNull: DbNull,
+  JsonNull: JsonNull,
+  AnyNull: AnyNull
+} as const
+
+export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter]
 

@@ -456,10 +456,6 @@ export type ProntuarioUncheckedUpdateManyWithoutPacienteNestedInput = {
   deleteMany?: Prisma.ProntuarioScalarWhereInput | Prisma.ProntuarioScalarWhereInput[]
 }
 
-export type NullableDateTimeFieldUpdateOperationsInput = {
-  set?: Date | string | null
-}
-
 export type ProntuarioCreateWithoutUsuarioInput = {
   descricao: string
   data?: Date | string | null
