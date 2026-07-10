@@ -46,7 +46,7 @@ export class PacienteRepository {
                 cpf: dadosPaciente.cpf || "",
                 telefone: dadosPaciente.telefone || "",
                 email: dadosPaciente.email || "",
-                data_nascimento: dadosPaciente.data_nascimento || "",
+                data_nascimento: dadosPaciente.data_nascimento ? new Date(dadosPaciente.data_nascimento) : new Date(),
                 sexo: dadosPaciente.sexo || "",
                 responsavel: dadosPaciente.responsavel || "",
                 rg: dadosPaciente.rg || null,
@@ -57,19 +57,21 @@ export class PacienteRepository {
                 cuidados_especiais: dadosPaciente.cuidados_especiais || null,
                 convenio: dadosPaciente.convenio || null,
                 numero_convenio: dadosPaciente.numero_convenio || null,
-                validade_convenio: dadosPaciente.validade_convenio || null,
+                validade_convenio: dadosPaciente.validade_convenio ? new Date(dadosPaciente.validade_convenio) : null,
                 endereco: dadosPaciente.endereco ?? undefined
             }
         })
     }
 
 
-    async atualizarPaciente() {
-        const idPaciente = Number(this.prisma.id)
-        const dadosParaAtualizar = prisma.paciente as Partial<Paciente>
+    async atualizarPaciente(idPaciente: number, dadosParaAtualizar: Partial<Paciente>) {
+        const dados = { ...dadosParaAtualizar }
+        if (dados.data_nascimento) dados.data_nascimento = new Date(dados.data_nascimento)
+        if (dados.validade_convenio) dados.validade_convenio = new Date(dados.validade_convenio)
+
         await this.prisma.paciente.update({
             data: {
-                ...dadosParaAtualizar
+                ...dados
             },
             where: {
                 id: idPaciente
@@ -82,8 +84,7 @@ export class PacienteRepository {
         })
         return pacienteAtualizado
     }
-    async deletarPaciente() {
-        const idPaciente = Number(this.prisma.id)
+    async deletarPaciente(idPaciente: number) {
         return await prisma.paciente.delete({
             where: {
                 id: idPaciente

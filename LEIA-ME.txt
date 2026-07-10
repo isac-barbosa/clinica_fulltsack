@@ -1,0 +1,49 @@
+COMO USAR ESTE PACOTE (RODADA 2)
+=================================
+
+Este pacote contém SÓ os arquivos que precisaram de correção nesta
+rodada (depois que você me mandou o zip com DashboardCharts, ExamsForm,
+ExamsList e PatientDetails). A estrutura de pastas é igual à do seu
+projeto — copie cada arquivo pro mesmo caminho, substituindo o atual.
+
+BACKEND (C:\isac\clinica_fulltsack\backend\)
+---------------------------------------------
+- src\repositories\ConsultaRepository.ts
+- src\services\ConsultaServices.ts
+- src\repositories\PacienteRepository.ts
+- src\services\PacienteServices.ts
+- src\repositories\ExameRepository.ts
+- src\services\ExameService.ts
+
+O que mudou: os métodos de ATUALIZAR e DELETAR de paciente, consulta e
+exame estavam quebrados (usavam "this.prisma.id", que não existe, e
+nunca recebiam o id/dados de verdade). Agora recebem e usam o id e os
+dados corretamente. Também corrigi um erro de digitação em
+buscarExameId (usava "prisma.idExame" em vez de "prisma.exame").
+
+FRONTEND (C:\isac\clinica_fulltsack\frontend\clinica\)
+---------------------------------------------
+- src\components\DashboardCharts\index.jsx
+- src\components\ExamsForm\index.jsx
+- src\components\ExamsList\index.jsx
+- src\components\PatientDetails\index.jsx
+
+O que mudou: esses 4 arquivos ainda usavam axios direto com os
+endpoints antigos do json-server (/patients, /consults, /exams em
+inglês). Troquei tudo para usar o apiClient com os endpoints e nomes
+de campo reais do backend (/pacientes, /consulta, /exame, com nome,
+telefone, convenio, motivo, data_consulta, tipo_exame, etc.)
+
+IMPORTANTE
+---------------------------------------------
+1. As rotas de /exame exigem usuário ADMIN. O PatientDetails busca
+   exames do paciente — se o usuário logado não for ADMIN, essa parte
+   simplesmente não mostra (mas o resto da página funciona normal).
+
+2. O backend ainda não filtra consultas/exames por paciente direto no
+   banco — o PatientDetails busca todas as consultas/exames e filtra
+   no navegador. Funciona bem para poucos registros; se a clínica
+   crescer bastante, vale mover esse filtro pro backend depois.
+
+3. Reinicie o backend (Ctrl+C e "npm start" de novo) depois de colar
+   os arquivos, para carregar o código atualizado.

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import axios from 'axios'
+import apiClient from '../../api/api'
 import { useParams } from 'react-router'
 import { toast, ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
@@ -38,30 +38,48 @@ const PatientDetails = () => {
   useEffect(() => {
     const fetchPatientDetails = async () => {
       try {
-        const patientRes = await axios.get(`http://localhost:3000/patients/${id}`)
-        const consultsRes = await axios.get(`http://localhost:3000/consults?patientId=${id}`)
-        const examsRes = await axios.get(`http://localhost:3000/exams?patientId=${id}`)
-
+        const patientRes = await apiClient.get(`/pacientes/${id}`)
         setPatient(patientRes.data)
-        setConsults(consultsRes.data)
-        setExams(examsRes.data)
+
+        const consultsRes = await apiClient.get(`/consulta`)
+        const todasConsultas = consultsRes.data?.consulta ?? consultsRes.data ?? []
+        setConsults(todasConsultas.filter((c) => c.paciente_id === Number(id)))
       } catch (error) {
         console.error('Erro ao obter os detalhes do paciente:', error)
+      }
+
+      // exames exige usuário ADMIN — busca separada para não travar o resto da página
+      try {
+        const examsRes = await apiClient.get(`/exame`)
+        const todosExames = examsRes.data?.exames ?? examsRes.data ?? []
+        setExams(todosExames.filter((e) => e.pacienteId === Number(id)))
+      } catch (error) {
+        console.error('Erro ao obter os exames do paciente (requer usuário ADMIN):', error)
       }
     }
 
     fetchPatientDetails()
   }, [id])
 
+  const splitDateTime = (isoString) => {
+    if (!isoString) return { date: '', time: '' }
+    const d = new Date(isoString)
+    if (isNaN(d.getTime())) return { date: '', time: '' }
+    const date = d.toISOString().slice(0, 10)
+    const time = d.toISOString().slice(11, 16)
+    return { date, time }
+  }
+
   const handleEditConsult = (consult) => {
     setEditingConsult(consult)
+    const { date, time } = splitDateTime(consult.data_consulta)
     setEditConsultData({
-      reason: consult.reason,
-      date: consult.date,
-      time: consult.time,
-      description: consult.description,
-      medication: consult.medication,
-      dosagePrecautions: consult.dosagePrecautions,
+      reason: consult.motivo,
+      date,
+      time,
+      description: consult.observacoes,
+      medication: consult.medicamento || '',
+      dosagePrecautions: consult.precaucoes_dosagem || '',
     })
     setIsEditingConsult(true)
   }
@@ -71,14 +89,23 @@ const PatientDetails = () => {
     try {
       if (!editingConsult) return
 
-      const updatedConsult = {
-        ...editingConsult,
-        ...editConsultData,
+      const dataConsulta = editConsultData.time
+        ? `${editConsultData.date}T${editConsultData.time}:00`
+        : editConsultData.date
+
+      const payload = {
+        motivo: editConsultData.reason,
+        data_consulta: dataConsulta,
+        observacoes: editConsultData.description,
+        medicamento: editConsultData.medication,
+        precaucoes_dosagem: editConsultData.dosagePrecautions,
+        medico_responsavel_id: editingConsult.medico_responsavel_id,
+        paciente_id: editingConsult.paciente_id,
       }
 
-      await axios.put(`http://localhost:3000/consults/${editingConsult.id}`, updatedConsult)
+      await apiClient.put(`/consulta/${editingConsult.id}`, payload)
       setConsults((prev) =>
-        prev.map((c) => (c.id === editingConsult.id ? updatedConsult : c))
+        prev.map((c) => (c.id === editingConsult.id ? { ...c, ...payload } : c))
       )
 
       toast.success('Consulta atualizada com sucesso!')
@@ -91,7 +118,7 @@ const PatientDetails = () => {
 
   const handleDeleteConsult = async (id) => {
     try {
-      await axios.delete(`http://localhost:3000/consults/${id}`)
+      await apiClient.delete(`/consulta/${id}`)
       setConsults((prev) => prev.filter((c) => c.id !== id))
       toast.success('Consulta excluída com sucesso!')
     } catch {
@@ -101,14 +128,15 @@ const PatientDetails = () => {
 
   const handleEditExam = (exam) => {
     setEditingExam(exam)
+    const { date, time } = splitDateTime(exam.data_exame)
     setEditExamData({
-      name: exam.name,
-      date: exam.date,
-      time: exam.time,
-      type: exam.type,
-      laboratory: exam.laboratory,
-      documentUrl: exam.documentUrl,
-      results: exam.results,
+      name: exam.descricao,
+      date,
+      time,
+      type: exam.tipo_exame,
+      laboratory: exam.laboratorio || '',
+      documentUrl: exam.documento_url || '',
+      results: exam.resultado || '',
     })
     setIsEditingExam(true)
   }
@@ -118,14 +146,22 @@ const PatientDetails = () => {
     try {
       if (!editingExam) return
 
-      const updatedExam = {
-        ...editingExam,
-        ...editExamData,
+      const dataExame = editExamData.time
+        ? `${editExamData.date}T${editExamData.time}:00`
+        : editExamData.date
+
+      const payload = {
+        tipo_exame: editExamData.type,
+        descricao: editExamData.name,
+        resultado: editExamData.results,
+        laboratorio: editExamData.laboratory,
+        documento_url: editExamData.documentUrl,
+        data_exame: dataExame,
       }
 
-      await axios.put(`http://localhost:3000/exams/${editingExam.id}`, updatedExam)
+      await apiClient.put(`/exame/${editingExam.id}`, payload)
       setExams((prev) =>
-        prev.map((exam) => (exam.id === editingExam.id ? updatedExam : exam))
+        prev.map((exam) => (exam.id === editingExam.id ? { ...exam, ...payload } : exam))
       )
 
       toast.success('Exame atualizado com sucesso!')
@@ -138,7 +174,7 @@ const PatientDetails = () => {
 
   const handleDeleteExam = async (id) => {
     try {
-      await axios.delete(`http://localhost:3000/exams/${id}`)
+      await apiClient.delete(`/exame/${id}`)
       setExams((prev) => prev.filter((e) => e.id !== id))
       toast.success('Exame excluído com sucesso!')
     } catch {
@@ -184,10 +220,10 @@ const PatientDetails = () => {
       y = 32
 
       // dados do paciente
-      writeLine(patient.fullName || 'Paciente', { bold: true, size: 14, gap: 8 })
-      writeLine(`Convênio: ${patient.healthInsurance || '-'}`)
-      writeLine(`Alergias: ${patient.allergies || '-'}`)
-      if (patient.phone) writeLine(`Telefone: ${patient.phone}`)
+      writeLine(patient.nome || 'Paciente', { bold: true, size: 14, gap: 8 })
+      writeLine(`Convênio: ${patient.convenio || '-'}`)
+      writeLine(`Alergias: ${patient.alergias || '-'}`)
+      if (patient.telefone) writeLine(`Telefone: ${patient.telefone}`)
       if (patient.email) writeLine(`E-mail: ${patient.email}`)
       y += 4
 
@@ -202,11 +238,12 @@ const PatientDetails = () => {
       } else {
         consults.forEach((c, index) => {
           checkPageBreak(5)
-          writeLine(`${index + 1}. ${c.reason || 'Consulta'}`, { bold: true, gap: 6 })
-          writeLine(`Data: ${c.date || '-'}  Horário: ${c.time || '-'}`)
-          writeLine(`Descrição: ${c.description || '-'}`)
-          writeLine(`Medicação: ${c.medication || '-'}`)
-          writeLine(`Dosagem e Precauções: ${c.dosagePrecautions || '-'}`)
+          const { date, time } = splitDateTime(c.data_consulta)
+          writeLine(`${index + 1}. ${c.motivo || 'Consulta'}`, { bold: true, gap: 6 })
+          writeLine(`Data: ${date || '-'}  Horário: ${time || '-'}`)
+          writeLine(`Descrição: ${c.observacoes || '-'}`)
+          writeLine(`Medicação: ${c.medicamento || '-'}`)
+          writeLine(`Dosagem e Precauções: ${c.precaucoes_dosagem || '-'}`)
           y += 3
         })
       }
@@ -222,11 +259,12 @@ const PatientDetails = () => {
       } else {
         exams.forEach((exam, index) => {
           checkPageBreak(5)
-          writeLine(`${index + 1}. ${exam.name || 'Exame'}`, { bold: true, gap: 6 })
-          writeLine(`Data: ${exam.date || '-'}  Horário: ${exam.time || '-'}`)
-          writeLine(`Tipo: ${exam.type || '-'}`)
-          writeLine(`Laboratório: ${exam.laboratory || '-'}`)
-          writeLine(`Resultados: ${exam.results || '-'}`)
+          const { date, time } = splitDateTime(exam.data_exame)
+          writeLine(`${index + 1}. ${exam.descricao || 'Exame'}`, { bold: true, gap: 6 })
+          writeLine(`Data: ${date || '-'}  Horário: ${time || '-'}`)
+          writeLine(`Tipo: ${exam.tipo_exame || '-'}`)
+          writeLine(`Laboratório: ${exam.laboratorio || '-'}`)
+          writeLine(`Resultados: ${exam.resultado || '-'}`)
           y += 3
         })
       }
@@ -237,7 +275,7 @@ const PatientDetails = () => {
       doc.setTextColor(120, 120, 120)
       doc.text(`Documento gerado em ${issuedAt}`, marginX, pageHeight - 8)
 
-      const fileName = `prontuario-${(patient.fullName || 'paciente').replace(/\s+/g, '-').toLowerCase()}.pdf`
+      const fileName = `prontuario-${(patient.nome || 'paciente').replace(/\s+/g, '-').toLowerCase()}.pdf`
       doc.save(fileName)
 
       toast.success('PDF do prontuário exportado com sucesso!')
@@ -256,7 +294,7 @@ const PatientDetails = () => {
           {patient.photoUrl ? (
             <img
               src={patient.photoUrl}
-              alt={`Foto de ${patient.fullName}`}
+              alt={`Foto de ${patient.nome}`}
               className="w-16 h-16 rounded-full object-cover border-2 border-cyan-600"
             />
           ) : (
@@ -265,9 +303,9 @@ const PatientDetails = () => {
             </div>
           )}
           <div>
-            <h2 className="text-2xl font-semibold text-gray-800">{patient.fullName}</h2>
-            <p><span className="font-semibold">Convênio:</span> {patient.healthInsurance}</p>
-            <p><span className="font-semibold">Alergias:</span> {patient.allergies}</p>
+            <h2 className="text-2xl font-semibold text-gray-800">{patient.nome}</h2>
+            <p><span className="font-semibold">Convênio:</span> {patient.convenio}</p>
+            <p><span className="font-semibold">Alergias:</span> {patient.alergias}</p>
           </div>
         </div>
 
@@ -325,16 +363,18 @@ const PatientDetails = () => {
         ) : consults.length === 0 ? (
           <p className="text-gray-500">Nenhuma consulta encontrada.</p>
         ) : (
-          consults.map((c) => (
+          consults.map((c) => {
+            const { date, time } = splitDateTime(c.data_consulta)
+            return (
             <div
               key={c.id}
               className="border rounded-xl p-4 mb-4 bg-gray-50 hover:bg-gray-100 transition"
             >
-              <p><strong>Consulta:</strong> {c.reason}</p>
-              <p><strong>Data:</strong> {c.date} - {c.time}</p>
-              <p><strong>Descrição:</strong> {c.description}</p>
-              <p><strong>Medicação:</strong> {c.medication}</p>
-              <p><strong>Dosagem e Precauções:</strong> {c.dosagePrecautions}</p>
+              <p><strong>Consulta:</strong> {c.motivo}</p>
+              <p><strong>Data:</strong> {date} - {time}</p>
+              <p><strong>Descrição:</strong> {c.observacoes}</p>
+              <p><strong>Medicação:</strong> {c.medicamento}</p>
+              <p><strong>Dosagem e Precauções:</strong> {c.precaucoes_dosagem}</p>
               <div className="flex gap-3 mt-3">
                 <button
                   onClick={() => handleEditConsult(c)}
@@ -350,7 +390,7 @@ const PatientDetails = () => {
                 </button>
               </div>
             </div>
-          ))
+          )})
         )}
       </div>
 
@@ -410,17 +450,19 @@ const PatientDetails = () => {
         ) : exams.length === 0 ? (
           <p className="text-gray-500">Nenhum exame encontrado.</p>
         ) : (
-          exams.map((exam) => (
+          exams.map((exam) => {
+            const { date, time } = splitDateTime(exam.data_exame)
+            return (
             <div
               key={exam.id}
               className="border rounded-xl p-4 mb-4 bg-gray-50 hover:bg-gray-100 transition"
             >
-              <p><strong>Exame:</strong> {exam.name}</p>
-              <p><strong>Data:</strong> {exam.date} - {exam.time}</p>
-              <p><strong>Tipo:</strong> {exam.type}</p>
-              <p><strong>Laboratório:</strong> {exam.laboratory}</p>
-              <p><strong>Documento:</strong> {exam.documentUrl}</p>
-              <p><strong>Resultados:</strong> {exam.results}</p>
+              <p><strong>Exame:</strong> {exam.descricao}</p>
+              <p><strong>Data:</strong> {date} - {time}</p>
+              <p><strong>Tipo:</strong> {exam.tipo_exame}</p>
+              <p><strong>Laboratório:</strong> {exam.laboratorio}</p>
+              <p><strong>Documento:</strong> {exam.documento_url}</p>
+              <p><strong>Resultados:</strong> {exam.resultado}</p>
               <div className="flex gap-3 mt-3">
                 <button
                   onClick={() => handleEditExam(exam)}
@@ -436,7 +478,7 @@ const PatientDetails = () => {
                 </button>
               </div>
             </div>
-          ))
+          )})
         )}
       </div>
 

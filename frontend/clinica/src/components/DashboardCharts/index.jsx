@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react"
-import axios from "axios"
+import apiClient from "../../api/api"
 import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
     PieChart, Pie, Cell
@@ -10,21 +10,11 @@ const MONTH_LABELS = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "S
 // paleta de cores para o gráfico de pizza (tons de ciano, combinando com o resto do sistema)
 const COLORS = ["#0e7490", "#06b6d4", "#22d3ee", "#67e8f9", "#a5f3fc", "#164e63", "#0891b2", "#155e75"]
 
-// as datas no db.json aparecem em dois formatos diferentes (dd-mm-yyyy e yyyy-mm-dd),
-// então essa função normaliza qualquer um dos dois formatos para um objeto Date válido
+// o backend (Postgres/Prisma) retorna as datas em formato ISO (ex: "2026-03-20T00:00:00.000Z")
 const parseDate = (dateStr) => {
     if (!dateStr) return null
-
-    if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
-        return new Date(dateStr)
-    }
-
-    if (/^\d{2}-\d{2}-\d{4}$/.test(dateStr)) {
-        const [day, month, year] = dateStr.split("-")
-        return new Date(`${year}-${month}-${day}`)
-    }
-
-    return null
+    const d = new Date(dateStr)
+    return isNaN(d.getTime()) ? null : d
 }
 
 const DashboardCharts = () => {
@@ -36,8 +26,8 @@ const DashboardCharts = () => {
         const fetchData = async () => {
             try {
                 const [consultsRes, patientsRes] = await Promise.all([
-                    axios.get("http://localhost:3000/consults"),
-                    axios.get("http://localhost:3000/patients"),
+                    apiClient.get("/consulta"),
+                    apiClient.get("/pacientes"),
                 ])
                 setConsults(consultsRes.data)
                 setPatients(patientsRes.data)
@@ -65,7 +55,7 @@ const DashboardCharts = () => {
         }
 
         consults.forEach((consult) => {
-            const date = parseDate(consult.date)
+            const date = parseDate(consult.data_consulta)
             if (!date) return
 
             const key = `${date.getFullYear()}-${date.getMonth()}`
@@ -81,7 +71,7 @@ const DashboardCharts = () => {
         const counts = {}
 
         patients.forEach((patient) => {
-            const insurance = patient.healthInsurance?.trim() || "Não informado"
+            const insurance = patient.convenio?.trim() || "Não informado"
             counts[insurance] = (counts[insurance] || 0) + 1
         })
 

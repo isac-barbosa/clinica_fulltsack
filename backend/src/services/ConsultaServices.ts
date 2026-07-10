@@ -31,12 +31,12 @@ export class ConsultaServices {
     }
 
     async atualizarConsulta(idConsulta: number, dadosParaAtualizar: Omit<Consulta, 'id'>) {
-        const consultaAtualizado = await this.repository.atualizarConsulta()
+        const consultaAtualizado = await this.repository.atualizarConsulta(idConsulta, dadosParaAtualizar)
         return consultaAtualizado;
     }
 
     async deletarConsulta(idConsulta: number) {
-        const consulta = await this.repository.deletarConsulta();
+        const consulta = await this.repository.deletarConsulta(idConsulta);
         return consulta;
     }
 

@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -29,7 +28,7 @@ const ExamsForm = () => {
 
     const fetchPatients = async () => {
         try {
-            const response = await apiClient.get("http://localhost:3000/patients");
+            const response = await apiClient.get("/pacientes");
             setPatients(response.data);
             setFilteredPatients(response.data);
         } catch (error) {
@@ -41,7 +40,7 @@ const ExamsForm = () => {
         const searchTerm = event.target.value.toLowerCase();
         const filtered = patients.filter(
             (patient) =>
-                patient.fullName.toLowerCase().includes(searchTerm) ||
+                patient.nome.toLowerCase().includes(searchTerm) ||
                 patient.id.toString().includes(searchTerm)
         );
         setFilteredPatients(filtered);
@@ -83,12 +82,22 @@ const ExamsForm = () => {
 
         try {
             setIsSaving(true);
+
+            const dataExame = examData.time
+                ? `${examData.date}T${examData.time}:00`
+                : examData.date;
+
             const examToAdd = {
-                ...examData,
-                patientId: selectedPatient.id,
+                tipo_exame: examData.type,
+                descricao: examData.name,
+                resultado: examData.results,
+                laboratorio: examData.laboratory,
+                documento_url: examData.documentUrl,
+                data_exame: dataExame,
+                pacienteId: selectedPatient.id,
             };
 
-            await axios.post("http://localhost:3000/exams", examToAdd);
+            await apiClient.post("/exame", examToAdd);
             toast.success("Exame cadastrado com sucesso!", {
                 position: "top-right",
                 autoClose: 2000,
@@ -136,10 +145,10 @@ const ExamsForm = () => {
                                 <strong>Registro:</strong> {patient.id}
                             </p>
                             <p className="text-sm">
-                                <strong>Nome:</strong> {patient.fullName}
+                                <strong>Nome:</strong> {patient.nome}
                             </p>
                             <p className="text-sm">
-                                <strong>Convênio:</strong> {patient.healthInsurance}
+                                <strong>Convênio:</strong> {patient.convenio}
                             </p>
                         </div>
                         <button
@@ -157,7 +166,7 @@ const ExamsForm = () => {
                 {selectedPatient && (
                     <>
                         <h2 className="text-lg font-bold mb-4 text-cyan-700">
-                            Cadastrar Exame para {selectedPatient.fullName}
+                            Cadastrar Exame para {selectedPatient.nome}
                         </h2>
 
                         <div className="mb-4 text-sm text-gray-700">
@@ -165,7 +174,7 @@ const ExamsForm = () => {
                                 <strong>Email:</strong> {selectedPatient.email}
                             </p>
                             <p>
-                                <strong>Telefone:</strong> {selectedPatient.phone}
+                                <strong>Telefone:</strong> {selectedPatient.telefone}
                             </p>
                         </div>
 

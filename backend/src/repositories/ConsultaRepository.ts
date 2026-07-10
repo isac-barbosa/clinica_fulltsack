@@ -42,7 +42,7 @@ export class ConsultaRepository {
         return await this.prisma.consulta.create({
             data: {
                 motivo: dadosConsulta.motivo || "",
-                data_consulta: dadosConsulta.data_consulta || "",
+                data_consulta: dadosConsulta.data_consulta ? new Date(dadosConsulta.data_consulta) : new Date(),
                 observacoes: dadosConsulta.observacoes || "",
                 medicamento: dadosConsulta.medicamento || null,
                 precaucoes_dosagem: dadosConsulta.precaucoes_dosagem || null,
@@ -53,12 +53,13 @@ export class ConsultaRepository {
     }
 
 
-    async atualizarConsulta() {
-        const idConsulta = Number(this.prisma.id)
-        const dadosParaAtualizar = prisma.consulta as Partial<Consulta>
+    async atualizarConsulta(idConsulta: number, dadosParaAtualizar: Partial<Consulta>) {
+        const dados = { ...dadosParaAtualizar }
+        if (dados.data_consulta) dados.data_consulta = new Date(dados.data_consulta)
+
         await this.prisma.consulta.update({
             data: {
-                ...dadosParaAtualizar
+                ...dados
             },
             where: {
                 id: idConsulta
@@ -71,8 +72,7 @@ export class ConsultaRepository {
         })
         return consultaAtualizado
     }
-    async deletarConsulta() {
-        const idConsulta = Number(this.prisma.id)
+    async deletarConsulta(idConsulta: number) {
         return await prisma.consulta.delete({
             where: {
                 id: idConsulta

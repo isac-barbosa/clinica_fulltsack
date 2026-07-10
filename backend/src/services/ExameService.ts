@@ -30,12 +30,12 @@ export class ExameServices {
     }
 
     async atualizarExame(idexame: number, dadosAtualizados: Omit<Exame, 'id'>) {
-        const exameAtualizado = await this.repository.atualizarExame()
+        const exameAtualizado = await this.repository.atualizarExame(idexame, dadosAtualizados)
         return exameAtualizado;
     }
 
     async deletarExame(idExame: number) {
-        const exame = await this.repository.deletarExame();
+        const exame = await this.repository.deletarExame(idExame);
         return exame;
     }
 

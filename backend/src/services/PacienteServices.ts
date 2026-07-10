@@ -43,12 +43,12 @@ export class PacienteServices {
     }
 
     async atualizarPaciente(idPaciente: number, dadosParaAtualizar: Omit<Paciente, 'id'>) {
-        const pacienteAtualizado = await this.repository.atualizarPaciente()
+        const pacienteAtualizado = await this.repository.atualizarPaciente(idPaciente, dadosParaAtualizar)
         return pacienteAtualizado;
     }
 
     async deletarPaciente(idPaciente: number) {
-        const paciente = await this.repository.deletarPaciente();
+        const paciente = await this.repository.deletarPaciente(idPaciente);
         return paciente;
     }
 
